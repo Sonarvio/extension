@@ -1,0 +1,40 @@
+{
+  "name": "Sonarvio",
+  "version": "0.2.0",
+  "description": "Extension to identify music in videos",
+  "permissions": [
+    "<all_urls>",
+
+    "webRequest",
+    "webRequestBlocking",
+    "*://*/*"
+  ],
+  "icons": {
+    "16": "icons/Sonarvio-Icon-16.png",
+    "48": "icons/Sonarvio-Icon-48.png",
+    "128": "icons/Sonarvio-Icon-128.png"
+  },
+  "browser_action": {
+    "default_icon": {
+      "19": "icons/Sonarvio-Icon-19.png",
+      "38": "icons/Sonarvio-Icon-38.png"
+    },
+    "default_title": "Sonarvio",
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "run_at": "document_start",
+      "all_frames": false
+    }
+  ],
+  "web_accessible_resources": [
+    "sonarvio.js"
+  ],
+  "background": {
+    "scripts": ["background.js"]
+  },
+  "manifest_version": 2
+}
