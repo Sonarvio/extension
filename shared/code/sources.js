@@ -8,8 +8,6 @@
  * As the 'SourceBuffer' prototype is not accessible its factory gets monkeypatched.
  */
 
-import Promise from 'bluebird'
-
 import {mergeBuffers} from './utilities'
 
 
