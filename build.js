@@ -6,12 +6,11 @@
  */
 
 const path = require('path')
+const spawn = require('child_process').spawn
 
 const fs = require('fs-extra')
 const chokidar = require('chokidar')
 const webpack = require('webpack')
-
-// const ExtractTextPlugin = require('extract-text-webpack-plugin')
 
 const nib = require('nib')
 const merge = require('deep-merge')(function (target, source) {
@@ -170,14 +169,27 @@ var references = platforms.filter(function (platform) {
   return platform.indexOf(config.output.path) === -1
 })
 
-if (isProduction) {
-  return webpack(config).run(copyAndLog)
-}
+// spawn process for updating the firefox extension build + release package
+var jpmCLI = null
 
-webpack(config).watch(100, copyAndLog)
+if (isProduction) {
+  webpack(config).run(copyAndLog)
+  jpmCLI = spawn('jpm', ['xpi', '-v'], {
+    cwd: distDir + 'firefox/'
+  })
+} else {
+  webpack(config).watch(100, copyAndLog)
+  jpmCLI = spawn('jpm', ['watchpost', '--post-url', 'http://localhost:8888/', '-v'], {
+    cwd: distDir + 'firefox/'
+  })
+}
+jpmCLI.stdout.pipe(process.stdout)
+jpmCLI.stderr.pipe(process.stderr)
+jpmCLI.on('error', console.error.bind(console))
+
 
 /**
- * [copyAndLog description]
+ * Creates copies based on the reference of the 'sonarvio.js' script.
  *
  * @param  {[type]} err   [description]
  * @param  {[type]} stats [description]
@@ -188,6 +200,10 @@ function copyAndLog (err, stats) {
     return console.error(err)
   }
   references.forEach(function (platform) {
+    // custom rule to specify firefox 'data/' directory
+    if (platform.indexOf('firefox') > -1) {
+      platform += '/data'
+    }
     fs.copySync(config.output.path + config.output.filename, platform + '/' + config.output.filename)
   })
   console.log('[BUILD] - ', stats.toString())

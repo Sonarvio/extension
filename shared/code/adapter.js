@@ -6,7 +6,11 @@
  */
 
 // ~ regular 'fetch' polyfill doesn't work: https://github.com/github/fetch
-import 'isomorphic-fetch'
+
+// import 'isomorphic-fetch' // FIREFOX - problem during the loading, script process
+if ('fetch' in window !== true) {
+  require('isomorphic-fetch')
+}
 
 // polyfill NodeList iteration
 if (!NodeList.prototype[Symbol.iterator]) {
