@@ -6,18 +6,15 @@
  */
 
 // initial link - will be added by the plugin
-
 // Testvideo:
 //
 //  Nothing Left to Prove - https://www.youtube.com/watch?v=BwfOMuW5YQQ
-
-import Promise from 'bluebird'
 
 import React from 'react'
 
 import './adapter'
 import sources from './sources'
-import {mergeBuffers} from './utilities.js'
+import {mergeBuffers, getHighestIndex} from './utilities.js'
 
 import App from '../components/App.jsx'
 
@@ -90,7 +87,6 @@ function removeContainerApp (video) {
   }
 }
 
-
 /**
  * [addContainerApp description]
  *
@@ -105,64 +101,69 @@ function addContainerApp (video) {
   // - define a chunking interface for streams - current implementation retruns just one large
   //   buffer for simplicity ....
   // - fetch doesn't provide progress information for a proper loading indicator
-  let getData = Object.keys(sources).includes(video.src) ?
-                                      sources[video.src] : // identifier match
-                                      fetch(video.src, {
-                                        method: 'HEAD',
-                                        mode: 'cors'
-                                      }).then(function (res) {
-                                        var acceptRanges = res.headers.get('Accept-Ranges')
-                                        if (acceptRanges !== 'bytes') { // single request load
-                                          return fetch(video.src, {
-                                            method: 'GET',
-                                            mode: 'cors'
-                                          }).then((res)=>res.arrayBuffer()).then(function (body) {
-                                            return Buffer(new Uint8Array(body))
-                                          })
-                                        }
-                                        // partial content loading benchmark, e.g.
-                                        // 1-  56777.704ms
-                                        // 3 - 38276.882ms
-                                        // 5 - 22112.935ms
-                                        //
-                                        // TODO:
-                                        // - access using a web worker to optimize max cocurrent reuqests
-                                        var maxConnections = 6
-                                        var contentLength = parseFloat(res.headers.get('Content-Length'))
-                                        var chunkSize = Math.floor(contentLength/maxConnections)
-                                        var chunkRest = contentLength - chunkSize * maxConnections
-                                        var chunks = [] // new Array(max)
-                                        for (var i = 0; i < maxConnections; i++) {
-                                          var start = i * chunkSize
-                                          var end = (i+1) * chunkSize - 1
-                                          if (i === maxConnections - 1) {
-                                            end += chunkRest + 1
-                                          }
-                                          // - force mimetype in the background:
-                                          // http://stackoverflow.com/questions/15561508/xmlhttprequest-206-partial-content
-                                          chunks[i] = fetch(video.src, {
-                                                        method: 'GET',
-                                                        mode: 'cors',
-                                                        headers: {
-                                                          Range: `${acceptRanges}=${start}-${end}`
-                                                        }
-                                                      }).then((res)=>res.arrayBuffer())
-                                        }
-                                        return Promise.all(chunks).then(mergeBuffers)
-                                      })
-
+  let getData = Object.keys(sources).indexOf(video.src) > -1 ? // includes - matches identifier
+                  sources[video.src] :
+                  fetch(video.src, {
+                    method: 'HEAD',
+                    mode: 'cors'
+                  }).then(function (res) {
+                    var acceptRanges = res.headers.get('Accept-Ranges')
+                    if (acceptRanges !== 'bytes') { // single request load
+                      return fetch(video.src, {
+                        method: 'GET',
+                        mode: 'cors'
+                      }).then((res)=>res.arrayBuffer()).then(function (body) {
+                        return Buffer(new Uint8Array(body))
+                      })
+                    }
+                    // partial content loading benchmark, e.g.
+                    // 1-  56777.704ms
+                    // 3 - 38276.882ms
+                    // 5 - 22112.935ms
+                    //
+                    // TODO:
+                    // - access using a web worker to optimize max cocurrent reuqests
+                    var maxConnections = 6
+                    var contentLength = parseFloat(res.headers.get('Content-Length'))
+                    var chunkSize = Math.floor(contentLength/maxConnections)
+                    var chunkRest = contentLength - chunkSize * maxConnections
+                    var chunks = [] // new Array(max)
+                    for (var i = 0; i < maxConnections; i++) {
+                      var start = i * chunkSize
+                      var end = (i+1) * chunkSize - 1
+                      if (i === maxConnections - 1) {
+                        end += chunkRest + 1
+                      }
+                      // - force mimetype in the background:
+                      // http://stackoverflow.com/questions/15561508/xmlhttprequest-206-partial-content
+                      chunks[i] = fetch(video.src, {
+                                    method: 'GET',
+                                    mode: 'cors',
+                                    headers: {
+                                      Range: `${acceptRanges}=${start}-${end}`
+                                    }
+                                  }).then((res)=>res.arrayBuffer())
+                    }
+                    return Promise.all(chunks).then(mergeBuffers)
+                  })
   // TODO:
   // - check if the video element around is already styled - could break the structure
   //   e.g. computate the position regarding the parents offset (currently just margin)
+
+  // theme distinction between different platforms || user settings at which corner the application
+  // sould be stickied -> normally/default at the right top corner - but could also change on user
+  // decision -> reading a variable ?
+
+  let wrapper = video.parentNode // original video parent container
+  wrapper.style.position = 'relative'
+
   let videoStyle = getComputedStyle(video)
   let container = document.createElement('div')
   container.className = 'Sonarvio'
 
   Object.assign(container.style, {
     position: 'absolute',
-    // TODO:
-    // - check advertisement, e.g. youtube -> check if elementat the position, largest zIndex (e.g. 1000)
-    zIndex: (parseFloat(videoStyle.zIndex) || 0) + 1,
+    zIndex: getHighestIndex(wrapper) + 1,
     maxWidth: videoStyle.width,
     maxHeight: videoStyle.height,
     top: videoStyle.marginTop,
@@ -175,13 +176,11 @@ function addContainerApp (video) {
     height: parseFloat(container.style.maxHeight.replace(/\D+/g, ''))
   }
 
-  let wrapper = video.parentNode
-  wrapper.style.position = 'relative'
-  wrapper.appendChild(container)
-
   React.render(React.createElement(App, {
     getData, // promise for accesing the data
     maxStyle, // element boundaries
     video
   }), container)
+
+  wrapper.appendChild(container)
 }
