@@ -8,7 +8,7 @@
  * 	- https://developer.chrome.com/extensions/webRequest
  */
 
-var accessControlRequestHeadersg
+var accessControlRequestHeaders
 
 /**
  * [addListener description]
@@ -21,7 +21,7 @@ chrome.webRequest.onBeforeSendHeaders.addListener(function requestListener (deta
       for (var header of details.requestHeaders) {
         if (header.name === 'Access-Control-Request-Headers') {
           accessControlRequestHeaders = header.value
-          console.log(header, 000);
+          // console.log('HEADER', header);
           break
         }
       }
@@ -98,11 +98,12 @@ chrome.webRequest.onHeadersReceived.addListener(function responseListener (detai
 
 /**
  * [isSupportedType description]
+ * Check file type
  *
  * @param  {[type]}  url [description]
  * @return {Boolean}     [description]
  */
 function isSupportedType (url) {
-  var extension = url.substr(url.lastIndexOf('.') + 1).toLowerCase() // file type
-  return ['mp4','ogg'].indexOf(extension) > -1
+  var extension = url.substr(url.lastIndexOf('.') + 1).toLowerCase()
+  return ['mp4', 'webm'].indexOf(extension) > -1
 }
