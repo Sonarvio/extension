@@ -16,12 +16,9 @@ import Spinner from './views/Spinner/Spinner.jsx'
 import Main from './controllers/Main/Main.jsx'
 import Actions from './controllers/Actions/Actions.jsx'
 
-import './App.styl'
-
+import __ from './App.styl'
 
 /**
- * [createClass description]
- *
  * NOTE:
  * - currently remain the former '.createClass' syntax for proper reference unbinding of eventlistener
  */
@@ -114,23 +111,23 @@ export default React.createClass({
 		let offsetX = this.state.open ? 0 : this.props.maxStyle.width - 2 * this.props.cornerSize;
 		let offsetY = this.state.open ? 0 : 2 * this.props.cornerSize - this.props.maxStyle.height;
 		return (
-			<div className="App">
+			<div className={__.App}>
 				<NativeListener onClick={this.handleClick}>
-					<div className="App__Pane" style={{
+					<div className={__.Pane} style={{
 							width: this.props.maxStyle.width,
 							height: this.props.maxStyle.height,
 							transform: `translate(${offsetX}px, ${offsetY}px)`,
 							opacity: this.state.visible ? 0.8 : 0
 						}}>
-						<div className="App__Main">
+						<div className={__.Main} data-class="Main">
 							<Main data={this.state.data} currentTime={this.state.currentTime}/>
 						</div>
-						<div className="App__Controls">
-							<div className="App__Trigger" ref="trigger">
+						<div className={__.Controls} data-class="Controls">
+							<div className={__.Trigger} ref="trigger" data-class="Trigger">
 								{this.state.data ? <Logo/> : <Spinner/>}
 							</div>
-							<div className="App__Actions">
-								<Actions/>
+							<div className={__.Actions}>
+								<Actions data={this.state.data}/>
 							</div>
 						</div>
 					</div>
@@ -142,13 +139,13 @@ export default React.createClass({
 	handleClick (e) {
 		e.preventDefault()
 		e.stopPropagation()
-		var trg = e.target;
-		var classNames = trg.getAttribute('class') // className property not matched in SVG Paths
+		// TODO:
+		// - temporary manual delegation as event scope restrict the scope to root element but 'body'
+		var classNames = e.target.dataset.class
 		switch (true) {
-			case (/App__Controls/).test(classNames):
-			case (/App__Trigger/).test(classNames):
+			case (/Controls/).test(classNames):
+			case (/Trigger/).test(classNames):
 			case (/Logo/).test(classNames):
-			case (/Logo__Path/).test(classNames):
 				if (this.state.data) {
 					this.setState({ open: !this.state.open })
 					if (this.props.video.paused) {
@@ -158,7 +155,7 @@ export default React.createClass({
 					}
 				}
 				break
-			case (/App__Main/).test(classNames):
+			case (/Main/).test(classNames):
 				console.log('main');
 				break
 		}

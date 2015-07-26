@@ -10,7 +10,7 @@
 
 import React from 'react'
 
-import './Spinner.styl'
+import __ from './Spinner.styl'
 
 
 /**
@@ -19,9 +19,9 @@ import './Spinner.styl'
 export default class Spinner extends React.Component {
 	render(){
 		return (
-			<div className="Spinner">
-				<div className="Spinner__Dot Spinner__Dot-1"></div>
-				<div className="Spinner__Dot Spinner__Dot-2"></div>
+			<div className={__.Spinner}>
+				<div className={__.Dot}></div>
+				<div className={__.Dot}></div>
 			</div>
 		)
 	}

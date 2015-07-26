@@ -64,36 +64,49 @@ var config = {
     loaders: [
       {
         test: /\.jsx?$/,
-        exclude: /node_modules/,
-        loader: 'babel-loader',
+        exclude: /(node_modules|bower_components)/,
+        loader: 'babel',
         query: {
           optional: [
+            'runtime',
             // http://babeljs.io/blog/2015/03/31/5.0.0/#stage-0:-class-properties
             // https://gist.github.com/jeffmo/054df782c05639da2adb
-            'es7.classProperties'
+            // 'es7.classProperties',
             // http://babeljs.io/blog/2015/05/14/function-bind/
             // https://github.com/zenparsing/es-function-bind
             // 'es7.functionBind'
-          ]
+          ],
+          stage: 0
         }
       },
       {
         test: /\.styl$/,
         exclude: /node_modules/,
-        loader: 'style-loader!css-loader!stylus-loader'
+        // https://medium.com/seek-ui-engineering/the-end-of-global-css-90d2a4a06284
+        loader: !isProduction
+                ?'style-loader!css-loader?modules&importLoaders=1&localIdentName=[path][name]__[local]--[hash:base64:5]!stylus-loader'
+                :'style-loader!css-loader?modules!stylus-loader'
         // query: {}
       }
+      // {
+      //   test: /\.(jpe?g|png|gif|svg)$/i,
+      //   loaders: [
+      //     'file?hash=sha512&digest=hex&name=[hash].[ext]',
+      //     // 'url?limit=100000', // hash, inlining ?
+      //     'image-webpack?bypassOnDebug&optimizationLevel=7&interlaced=false'
+      //   ]
+      // },
       // { // e.g. referenced in 'mime-db' (dependency of request)
       //   test: /\.json$/,
       //   exclude: '/node_modules/',
       //   loader: 'json-loader'
       //   // query: {}
       // }
-    ],
+    ]
   },
   stylus: {
     // perhaps instead of nib - just autoprefixer or postcss:
-    //  https://github.com/postcss/postcss#built-with-postcss
+    // https://github.com/postcss/postcss#built-with-postcss
     use: [nib()],
     import: ['nib'],
     errors: true
@@ -146,7 +159,6 @@ if (!isProduction) {
   chokidar.watch(assetsDir).on('all', function (e, path) {
     if (['change', 'add'].indexOf(e) > -1) {
       platforms.forEach(function (distPlatformDir) {
-        // console.log(path, path.replace(assetsDir, distPlatformDir));
         fs.copySync(path, path.replace(assetsDir, distPlatformDir))
       })
     }

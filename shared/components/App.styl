@@ -12,60 +12,59 @@ $panelColor = #B03B3B;
 $colorFont = #FFF;
 
 .App {
-
 	color: $colorFont;
+}
 
-	&__Pane {
-		opacity: 0.9;
-		transition: transform 500ms ease-in-out,
-								opacity 500ms ease-in-out;
-	}
+.Pane {
+	opacity: 0.9;
+	transition: transform 500ms ease-in-out,
+							opacity 500ms ease-in-out;
+}
 
-	&__Main {
-		height: calc(100% -  100px); // $corner
-		background-color: $panelColor;
-	}
+.Main {
+	height: calc(100% -  100px); // $corner
+	background-color: $panelColor;
+}
 
-	&__Controls {
-		height: 100px; // $corner
-	}
+.Controls {
+	height: 100px; // $corner
+}
 
-	&__Trigger {
-		position: relative;
-		float: left;
-		width: 40px; // $corner
-		height: 40px;
-		padding: 5px;
-		margin-left: 50px;
-		background-color: $panelColor;
+.Trigger {
+	position: relative;
+	float: left;
+	width: 40px; // $corner
+	height: 40px;
+	padding: 5px;
+	margin-left: 50px;
+	background-color: $panelColor;
+	cursor: pointer;
+
+	&::before, &::after {
+		content: '';
+		position: absolute;
+		width: 0;
+		height: 0;
+		border-style: solid;
+		border-width: 0 50px 50px 0;
+		border-color: transparent $panelColor transparent transparent;
 		cursor: pointer;
-
-		&::before, &::after {
-			content: '';
-			position: absolute;
-			width: 0;
-			height: 0;
-			border-style: solid;
-			border-width: 0 50px 50px 0;
-			border-color: transparent $panelColor transparent transparent;
-			cursor: pointer;
-		}
-
-		&::before {
-			left: -50px;
-			bottom: 0;
-		}
-
-		&::after {
-			left: 0;
-			bottom: -50px;
-		}
 	}
 
-	&__Actions {
-		float: right;
-		width: calc(100% - 100px); // $corner
-		height: 100%;
-		background-color: $panelColor;
+	&::before {
+		left: -50px;
+		bottom: 0;
 	}
+
+	&::after {
+		left: 0;
+		bottom: -50px;
+	}
+}
+
+.Actions {
+	float: right;
+	width: calc(100% - 100px); // $corner
+	height: 100%;
+	background-color: $panelColor;
 }

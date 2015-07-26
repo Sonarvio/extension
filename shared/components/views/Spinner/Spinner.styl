@@ -13,23 +13,26 @@
   text-align: center;
 
 	animation: rotate 2s infinite linear;
+}
 
-	&__Dot {
-		width: 60%;
-		height: 60%;
-		display: inline-block;
-		position: absolute;
-		top: 0;
-		background-color: #fff; //#333;
-		border-radius: 100%;
-		animation: bounce 2s infinite ease-in-out;
-	}
+.Dot {
+	width: 60%;
+	height: 60%;
+	display: inline-block;
+	position: absolute;
+	top: 0;
+	background-color: #fff; //#333;
+	border-radius: 100%;
+	animation: bounce 2s infinite ease-in-out;
 
-	&__Dot-2 {
-		top: auto;
-	  bottom: 0px;
-		animation-delay: -1s;
-	}
+  // seconday rule
+  & + & {
+  	top: auto;
+    bottom: 0px;
+    // localizeName replacement Bug for animation properties got already fixed (next version > 0.15.5)
+    // => https://github.com/css-modules/postcss-modules-local-by-default/pull/18
+  	animation-delay: 1s;
+  }
 }
 
 
