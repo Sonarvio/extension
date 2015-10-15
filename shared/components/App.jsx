@@ -156,7 +156,8 @@ export default React.createClass({
 
 		const className = target.dataset.class || target.className
 		switch (true) {
-			case (/DownloadPanel__Button/).test(className):
+			case (/ResourcesPanel__Button/).test(className):
+			case (/LookupPanel__Link/).test(className):
 			case (/Dualpane__Label/).test(className):
 				const { paused, volume } = video
 				video.volume = 0

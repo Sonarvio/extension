@@ -1,7 +1,7 @@
 {
   "name": "sonarvio-extension",
   "description": "Browser extension to identify music in videos",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "author": "Stefan Dühring | Autarc <autarc@gmail.com>",
   "bugs": {
     "url": "https://github.com/Sonarvio/sonarvio-extension/issues"
@@ -17,7 +17,7 @@
     "react-dom": "^0.14.0",
     "react-native-listener": "^1.0.1",
     "sonarvio-converter": "^0.8.0",
-    "sonarvio-editor": "^0.8.0"
+    "sonarvio-editor": "^0.8.1"
   },
   "devDependencies": {
     "autoprefixer": "^6.0.3",

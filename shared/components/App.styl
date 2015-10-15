@@ -26,6 +26,11 @@ $color-text = #333;
 
 .Pane {
 	height: 100%;
+}
+
+.Main {
+	height: calc(100% - 100px);//2 * $cornerSize); // 2 * $corner
+	background-color: $color-background;
 
 	&::after {
 		content: '';
@@ -36,11 +41,6 @@ $color-text = #333;
 		bottom: 0;
 		background-color: $color-background;
 	}
-}
-
-.Main {
-	height: calc(100% - 100px);//2 * $cornerSize); // 2 * $corner
-	background-color: $color-background;
 }
 
 .Trigger {
