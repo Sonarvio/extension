@@ -13,7 +13,6 @@
 # modules
 node_modules/
 
-
 # build
 dist/
 docs/
@@ -22,6 +21,7 @@ docs/
 npm-debug.log
 
 # credentials
+*.pem
 
 
 ######################
