@@ -5,17 +5,26 @@
  * Intercept and allow CORS request for all 'arraybuffer' requests on video sources.
  *
  * API:
- * 	- https://developer.chrome.com/extensions/webRequest
+ * - https://developer.chrome.com/extensions/webRequest
  */
+
+/**
+ * Open sonarvio site on browser action
+ */
+chrome.browserAction.onClicked.addListener(function(){
+  chrome.tabs.executeScript({
+    code: 'window.open("http://sonarvio.com")'
+  })
+})
+
 
 var accessControlRequestHeaders
 
 /**
- * [addListener description]
- *
- * @param {[type]}
+ * Handle outgoing requests
  */
 chrome.webRequest.onBeforeSendHeaders.addListener(function requestListener (details) {
+  console.log('request, ', details);
   if (isSupportedType(details.url)) {
     if (details.method === 'OPTIONS') {
       for (var header of details.requestHeaders) {
@@ -32,23 +41,22 @@ chrome.webRequest.onBeforeSendHeaders.addListener(function requestListener (deta
   }
 }, {
   urls: ["*://*/*"]
-}, [
-  'blocking', 'requestHeaders'
-])
+}, ['blocking', 'requestHeaders'])
 
 /**
- * [addListener description]
- *
- * @param {[type]}
+ * Handle incoming responses
  */
 chrome.webRequest.onHeadersReceived.addListener(function responseListener (details) {
   var headers = details.responseHeaders
 
-  if (isSupportedType(details.url) && ['OPTIONS', 'HEAD', 'GET'].indexOf(details.method) > -1) {
+  if (
+    isSupportedType(details.url) &&
+    ['OPTIONS', 'HEAD', 'GET'].indexOf(details.method) > -1
+  ) {
 
     var set = false
 
-    // check if header is provided -> but not for its own origin
+    // check if header is provided (not for its own origin)
     for (var header of headers) {
       if (header.name === 'Access-Control-Allow-Origin') {
         set = true
@@ -57,7 +65,7 @@ chrome.webRequest.onHeadersReceived.addListener(function responseListener (detai
       }
     }
 
-    // if none provided - allow by addingthe header
+    // if not already provided add CORS header
     if (!set)  {
       headers.push({
         name: 'Access-Control-Allow-Origin',
@@ -74,7 +82,6 @@ chrome.webRequest.onHeadersReceived.addListener(function responseListener (detai
     }
 
     // optional -> check if access-control-allow is not set, then set
-
     // define the methods of HEAD, GET, OPTIONS
     // details.responseHeaders.push({
     //   name: 'Access-Control-Allow-Methods',
@@ -97,11 +104,9 @@ chrome.webRequest.onHeadersReceived.addListener(function responseListener (detai
 
 
 /**
- * [isSupportedType description]
  * Check file type
  *
- * @param  {[type]}  url [description]
- * @return {Boolean}     [description]
+ * @param {string} url -
  */
 function isSupportedType (url) {
   var extension = url.substr(url.lastIndexOf('.') + 1).toLowerCase()
