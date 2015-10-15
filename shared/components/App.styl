@@ -5,29 +5,42 @@
  * Sonarvio Application
  */
 
-$cornerSize = 40px;
-$cornerOffset = 5px;
-$panelColor = #B03B3B;
-
-$colorFont = #FFF;
+// $color-panel = #a9487e;//#B03B3B;
+// $cornerSize = 50px; // trigger.width + 2 * trigger.padding
+$color-background = #dcdbdb;
+$color-text = #333;
 
 .App {
-	color: $colorFont;
-}
-
-.Pane {
 	opacity: 0.9;
 	transition: transform 500ms ease-in-out,
 							opacity 500ms ease-in-out;
+
+	color: $color-text;
+}
+
+// ## Overwrites
+// Youtube: '.html5-video-player a:hover'
+.App a, .App a:hover {
+	color: blue !important;
+}
+
+.Pane {
+	height: 100%;
+
+	&::after {
+		content: '';
+		position: absolute;
+		width: calc(100% - 100px); // 2 * $cornerSize;
+		height: 100px; //2 * $cornerSize;
+		left: 100px; //2 * $cornerSize;
+		bottom: 0;
+		background-color: $color-background;
+	}
 }
 
 .Main {
-	height: calc(100% -  100px); // $corner
-	background-color: $panelColor;
-}
-
-.Controls {
-	height: 100px; // $corner
+	height: calc(100% - 100px);//2 * $cornerSize); // 2 * $corner
+	background-color: $color-background;
 }
 
 .Trigger {
@@ -37,7 +50,7 @@ $colorFont = #FFF;
 	height: 40px;
 	padding: 5px;
 	margin-left: 50px;
-	background-color: $panelColor;
+	background-color: $color-background;
 	cursor: pointer;
 
 	&::before, &::after {
@@ -47,7 +60,7 @@ $colorFont = #FFF;
 		height: 0;
 		border-style: solid;
 		border-width: 0 50px 50px 0;
-		border-color: transparent $panelColor transparent transparent;
+		border-color: transparent $color-background transparent transparent;
 		cursor: pointer;
 	}
 
@@ -60,11 +73,4 @@ $colorFont = #FFF;
 		left: 0;
 		bottom: -50px;
 	}
-}
-
-.Actions {
-	float: right;
-	width: calc(100% - 100px); // $corner
-	height: 100%;
-	background-color: $panelColor;
 }

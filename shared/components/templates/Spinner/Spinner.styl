@@ -5,10 +5,11 @@
  *
  */
 
+$color-spinner = #a9487e;
+
 .Spinner {
-	// margin: 100px auto;
-  width: 30px; // 40px
-  height: 30px; // 40px
+  width: 30px;
+  height: 30px;
   position: relative;
   text-align: center;
 
@@ -21,16 +22,13 @@
 	display: inline-block;
 	position: absolute;
 	top: 0;
-	background-color: #fff; //#333;
+	background-color: $color-spinner;
 	border-radius: 100%;
 	animation: bounce 2s infinite ease-in-out;
 
-  // seconday rule
   & + & {
   	top: auto;
     bottom: 0px;
-    // localizeName replacement Bug for animation properties got already fixed (next version > 0.15.5)
-    // => https://github.com/css-modules/postcss-modules-local-by-default/pull/18
   	animation-delay: 1s;
   }
 }

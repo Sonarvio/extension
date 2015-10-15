@@ -6,129 +6,90 @@
  */
 
 import React from 'react'
+import ReactDOM from 'react-dom'
 import classnames from 'classnames'
+import prettyBytes from 'pretty-bytes'
+
 import NativeListener from 'react-native-listener'
 
-
-import Logo from './views/Logo/Logo.jsx'
-import Spinner from './views/Spinner/Spinner.jsx'
-
-import Main from './controllers/Main/Main.jsx'
-import Actions from './controllers/Actions/Actions.jsx'
+import Main from './templates/Main/Main.jsx'
+import Logo from './templates/Logo/Logo.jsx'
+import Spinner from './templates/Spinner/Spinner.jsx'
 
 import __ from './App.styl'
 
+
 /**
  * NOTE:
- * - currently remain the former '.createClass' syntax for proper reference unbinding of eventlistener
+ * The classical '.createClass' syntax is used to have proper unbinding of
+ * EventListeners. Moreover it includes a check if a component is still mounted
+ * (https://facebook.github.io/react/docs/component-api.html#ismounted).
  */
 export default React.createClass({
 
 	propTypes: {
 		getData: React.PropTypes.object.isRequired,
-		maxStyle: React.PropTypes.object.isRequired,
+		appStyles: React.PropTypes.object.isRequired,
 		video: React.PropTypes.object.isRequired
+	},
+
+	getDefaultProps(){
+		return {
+			cornerSize: 50, // Trigger.width [40] + 2 * Trigger.padding [5]
+			visibleDistance: 200
+		}
 	},
 
 	getInitialState(){
 		return {
 			visible: false,
 			open: false,
-			data: null,
-			currentTime: this.props.video.currentTime
+			data: null
 		}
-	},
-
-	getDefaultProps(){
-		return {
-			cornerSize: 50, // 40px + 2 * 5px  padding
-			visibleDistance: 200
-		}
-	},
-
-	componentWillUnmount(){
-		document.body.removeEventListener('mousemove', this.toggleApp)
-		this.props.video.removeEventListener('timeupdate', this.updateTime)
 	},
 
 	componentDidMount(){
-		document.body.addEventListener('mousemove', this.toggleApp)
-		this.props.video.addEventListener('timeupdate', this.updateTime)
+		document.body.addEventListener('mousemove', this.checkToggleApp)
 
-		this.props.getData.then(function (data) {
-			if (this.isMounted()) { // https://facebook.github.io/react/docs/component-api.html#ismounted
-				this.setState({ data })
+		// apply data if the app instance is mounted && max. 100MB
+		this.props.getData.then((data) => {
+			if (this.isMounted()) {
+				if (data.buffer.length <= 100000000) {
+					return this.setState({ data })
+				}
+				console.info(`
+					The video "${this.props.video.src}" has a size of ${prettyBytes(data.buffer.length)}.
+					Unfortunatly currently the extension only allows to parse data smaller than 100MB!
+				`)
 			}
-		}.bind(this))
+		})
 	},
 
-	// visible distance
-	toggleApp (e) {
-
-		if (this.state.open) {
-			return // ignore as open
-		}
-
-		// wrapper node || ~ React.findDOMNode(this).parentNode
-		var element = this.refs.trigger.getDOMNode()
-		var bounding = element.getBoundingClientRect()
-
-		// absolute DOM position
-		var totalOffsetX = this.props.maxStyle.width - 2 * this.props.cornerSize
-		var totalOffsetY = -this.props.maxStyle.height + 2 * this.props.cornerSize
-
-		do {
-			totalOffsetX += element.offsetLeft
-			totalOffsetY += element.offsetTop
-		} while (element = element.offsetParent)
-
-		var posX = totalOffsetX + bounding.width/2
-		var posY = totalOffsetY + bounding.height/2
-
-		let dist = Math.floor(
-			Math.sqrt(
-				Math.pow(e.pageX - posX, 2) +
-	  		Math.pow(e.pageY - posY, 2)
-			)
-		)
-
-		if (dist <= this.props.visibleDistance) {
-			if (!this.state.visible) {
-				this.setState({ visible: true })
-			}
-		} else {
-			if (this.state.visible) {
-				this.setState({ visible: false })
-			}
-		}
-	},
-
-	updateTime (e) {
-		this.setState({ currentTime: e.currentTarget.currentTime })
+	componentWillUnmount(){
+		document.body.removeEventListener('mousemove', this.checkToggleApp)
 	},
 
 	render(){
-		let offsetX = this.state.open ? 0 : this.props.maxStyle.width - 2 * this.props.cornerSize;
-		let offsetY = this.state.open ? 0 : 2 * this.props.cornerSize - this.props.maxStyle.height;
+		const { appStyles, cornerSize, video } = this.props
+		const { open, visible, data } = this.state
+
+		const offsetX = open ? 0 : appStyles.width - 2 * cornerSize
+		const offsetY = open ? 0 : 2 * cornerSize - appStyles.height
+
 		return (
-			<div className={__.App}>
+			<div className={__.App} style={{
+					width: appStyles.width,
+					height: appStyles.height,
+					transform: `translate(${offsetX}px, ${offsetY}px)`,
+					opacity: visible ? 0.9 : 0
+				}}>
 				<NativeListener onClick={this.handleClick}>
-					<div className={__.Pane} style={{
-							width: this.props.maxStyle.width,
-							height: this.props.maxStyle.height,
-							transform: `translate(${offsetX}px, ${offsetY}px)`,
-							opacity: this.state.visible ? 0.8 : 0
-						}}>
-						<div className={__.Main} data-class="Main">
-							<Main data={this.state.data} currentTime={this.state.currentTime}/>
+					<div className={__.Pane} data-class="Pane">
+						<div className={__.Main}>
+							{data && (<Main data={data} video={video}/>)}
 						</div>
-						<div className={__.Controls} data-class="Controls">
-							<div className={__.Trigger} ref="trigger" data-class="Trigger">
-								{this.state.data ? <Logo/> : <Spinner/>}
-							</div>
-							<div className={__.Actions}>
-								<Actions data={this.state.data}/>
-							</div>
+						<div className={__.Trigger} ref="trigger" data-class="Trigger">
+							{data ? <Logo/> : <Spinner/>}
 						</div>
 					</div>
 				</NativeListener>
@@ -136,28 +97,97 @@ export default React.createClass({
 		)
 	},
 
+	// check visible distance
+	checkToggleApp (e) {
+		const { appStyles, cornerSize, visibleDistance } = this.props
+		const { open, visible } = this.state
+
+		if (open) {
+			return
+		}
+
+		var trigger = ReactDOM.findDOMNode(this.refs.trigger)
+		var bounding = trigger.getBoundingClientRect()
+
+		// absolute DOM position
+		var totalOffsetX = appStyles.width - 2 * cornerSize
+		var totalOffsetY = -appStyles.height + 2 * cornerSize
+
+		do {
+			totalOffsetX += trigger.offsetLeft
+			totalOffsetY += trigger.offsetTop
+		} while (trigger = trigger.offsetParent)
+
+		const posX = totalOffsetX + bounding.width/2
+		const posY = totalOffsetY + bounding.height/2
+
+		const dist = Math.floor(
+			Math.sqrt(
+				Math.pow(e.pageX - posX, 2) +
+	  		Math.pow(e.pageY - posY, 2)
+			)
+		)
+
+		if (dist <= visibleDistance) {
+			if (!visible) {
+				this.setState({ visible: true })
+			}
+		} else {
+			if (visible) {
+				this.setState({ visible: false })
+			}
+		}
+	},
+
+	/**
+	 * Manually setup an event delegation as react is currently not
+	 * bound by instance scope of its root element but the 'document.body'.
+	 *
+	 * TODO:
+	 * - replace with a proper signaling mechanism without interfering
+	 * 	 with existing systems
+	 *
+	 * @param  {object} e - MouseEvent
+	 */
 	handleClick (e) {
-		e.preventDefault()
-		e.stopPropagation()
-		// TODO:
-		// - temporary manual delegation as event scope restrict the scope to root element but 'body'
-		var classNames = e.target.dataset.class
+		const { video } = this.props
+		const { data, open } = this.state
+		const { target } = e
+
+		const className = target.dataset.class || target.className
 		switch (true) {
-			case (/Controls/).test(classNames):
-			case (/Trigger/).test(classNames):
-			case (/Logo/).test(classNames):
-				if (this.state.data) {
-					this.setState({ open: !this.state.open })
-					if (this.props.video.paused) {
-						this.props.video.play()
-					} else {
-						this.props.video.pause()
-					}
+			case (/DownloadPanel__Button/).test(className):
+			case (/Dualpane__Label/).test(className):
+				const { paused, volume } = video
+				video.volume = 0
+				if (paused) {
+					video.addEventListener('play', function surpressPlay (e) {
+						video.removeEventListener('play', surpressPlay)
+						video.pause()
+						video.volume = volume
+					})
+				} else {
+					video.addEventListener('pause', function surpressPause (e) {
+						video.removeEventListener('pause', surpressPause)
+						video.play()
+						video.volume = volume
+					})
 				}
 				break
-			case (/Main/).test(classNames):
-				console.log('main');
-				break
+			case (/Trigger/).test(className):
+			case (/Spinner/).test(className):
+			case (/Logo/).test(className):
+			case (/Pane/).test(className):
+				if (data) {
+					this.setState({ open: !open }, () => {
+						video[this.state.open ? 'pause' : 'play']()
+					})
+				} else {
+					console.info('Initial data needs to be loaded first - keep waiting!')
+				}
+			default:
+				e.preventDefault()
+				e.stopPropagation()
 		}
 	}
 })

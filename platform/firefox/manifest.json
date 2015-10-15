@@ -2,6 +2,11 @@
   "name": "Sonarvio",
   "version": "0.3.0",
   "description": "Extension to identify music in videos",
+  "applications": {
+    "gecko": {
+      "id": "sonarvio@mozilla.org"
+    }
+  },
   "permissions": [
     "tabs",
     "<all_urls>",
